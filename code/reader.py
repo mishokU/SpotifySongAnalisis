@@ -47,9 +47,10 @@ def readAllCsv():
     print(frame)
 
     drawPlots(frame)
-    drawMostFrequentlyGenres(frame)
+    drawMostFrequentlyGenres()
     drawDominateGenresWords(frame)
     drawArtistPopularityByAlbumPopularity(frame)
+    drawArtistPopularityBySongsCount(frame)
 
 
 def fetch_data():
@@ -72,20 +73,23 @@ def fetch_data():
     return data
 
 def generate_dataframe(data, key):
-    df_tmp = pd.DataFrame(data, index=years, columns=['key'])
+    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
+    df_tmp = pd.DataFrame(data, index=years_local, columns=['key'])
     # Converting the index as date
     df_tmp.index = pd.to_datetime(df_tmp.index)
     return df_tmp
 
 
 def mean_data_generation(df):
+    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
     loudness_over_years = []
     energy_over_years = []
     valence_over_years = []
     acoustics_over_years = []
     instrumentalness_over_years = []
     track_number_over_years = []
-    for _ in years:
+    for year in years_local:
+        df = pd.read_csv('/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
         loudness_over_years.append(df['loudness'].mean())
         energy_over_years.append(df['energy'].mean())
         valence_over_years.append(df['valence'].mean())
@@ -150,10 +154,11 @@ def drawGenderTrends():
     plt.show()
 
 
-def drawMostFrequentlyGenres(df):
+def drawMostFrequentlyGenres():
     count = collections.Counter()
 
     for year in years:
+        df = pd.read_csv('/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
         artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
 
     x = (artist_genres_info.loc[:, str(year)])
@@ -165,7 +170,6 @@ def drawMostFrequentlyGenres(df):
     df = pd.DataFrame(count.most_common(25), columns=['genre', 'count'])
     ax = sns.barplot(x="genre", y="count", data=df)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
-    plt.figure(figsize=(45, 35))
     plt.show()
 
 
