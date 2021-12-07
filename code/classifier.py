@@ -94,109 +94,39 @@ def reduce_genres(gen):
     genre = [i for i in genre if i not in set(stopwords.words("english"))]
     mode1 = str(stats.mode(genre)).split('[')[1].split(']')[0]
     return mode1
-    
-
-print('Start!')
-
-## general dataframe transform
-df = pd.read_csv('//Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/1995.csv', sep='\t')
-
-df = df.dropna()
-
-df = df.drop(['album_genres'],axis =1 )
-
-
-df['explicit'] = df['explicit'].map( {True: 1, False: 0} ).astype(int) 
-
-z = df['popularity'].quantile(0.8)
-df['class'] = df['popularity'].apply(lambda x: 1 if x >= z else 0)
-
-df = df[(df.astype(str)['artist_genres'] != '[]')].reset_index()
-
-df['reduced_genres'] = df['artist_genres'].apply(lambda x: reduce_genres(x))
-
-df['year'] = [x.split('-')[0] for x in df['album_release_date']]
-
-df.to_csv('bigdiwithyear.csv', sep='\t')
-
-
-### bag of words: text items vectorization
-
-df1 = bagwords( df )
-
-df = df.merge(df1, on='song_id', how='outer')
-
-df.shape
-
-
-df = df.drop(['Unnamed: 0', 'song_id', 'artist_id','album_id','song_name',
-            'artist_name','album_name','uri', 'type', 'track_href',
-            'analysis_url','artist_genres','album_release_date','popularity',
-            'class','index','reduced_genres'],axis=1)   
-
-df.to_csv('bigdichorddiagram.csv', sep='\t')
-
-df[(df['popularity'] >= df['popularity'].quantile(0.8))]['loudness'].mean()#value_counts(dropna=False)
-
-
-
-#training
-Y = df['class'].values
-
-X = df.values     
-
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
-
-
-#clf = XGBClassifier()
-#clf = RandomForestRegressor(n_estimators=200,max_features=18)
-
-clf  =  XGBClassifier(
-        eval_metric = 'accuracy',
-        learning_rate = 0.1,
-        n_estimators = 100,
-        max_depth = 3,
-        subsample = 0.9,
-        colsample_bytree = 0.9,
-        silent = False
-        )
-
-#clf = RandomForestClassifier(n_estimators=100,max_features=17)  
-
-#clf = svm.SVC()        
-        
-clf.fit(X_train,Y_train)
-
-print('good')
-
-importance = clf.feature_importances_
-
-dfi = pd.DataFrame(importance, index=df.columns, columns=["Importance"])
-dfi = dfi.sort_values(['Importance'],ascending=False)
-print(dfi)
-dfi.plot(kind='bar',color='Purple')
-
-
-
-Ascores_Train = cross_val_score(clf, X_train, Y_train, cv=5)
-Ascores_Test = clf.score(X_test,Y_test)
-
-
-print('lala')
-print(Ascores_Train.mean()) 
-print(Ascores_Train.std()) 
-print(Ascores_Test) 
+def generic_cleanup (df):
+    df = df.dropna()#drops null values
+    df = df.drop(['album_genres'],axis =1 )#column not needed
+    df['explicit'] = df['explicit'].map( {True: 1, False: 0} ).astype(int)
+    threshold = df['popularity'].quantile(0.8)
+    df['class'] = df['popularity'].apply(lambda x: 1 if x >= threshold else 0) #takes 20% of all tracks
+    df = df[(df.astype(str)['artist_genres'] != '[]')].reset_index()
+    df['reduced_genres'] = df['artist_genres'].apply(lambda x: reduce_genres(x))
+    df['year'] = [x.split('-')[0] for x in df['album_release_date']]
+    return df
+def merge ():
+    warnings.filterwarnings('ignore')
+    df = pd.read_csv('//Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/1995.csv', sep='\t')
+    df = generic_cleanup(df)
+    df1 = bagwords(df)
+    df = df.merge(df1, on='song_id', how='outer')
+    return df
+def train (df):
+    Y = df['class'].values
+    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name',
+                  'artist_name', 'album_name', 'type', 'artist_genres', 'album_release_date', 'popularity',
+                  'class', 'index', 'reduced_genres'], axis=1)
+    X = df.values
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
+    model = RandomForestRegressor(n_estimators=200, max_features=17)
+    model.fit(X_train, Y_train)
+    train_predict = model.predict(X_train)
+    mse_train = mean_squared_error(Y_train, train_predict)
+    print("training error:", mse_train)
+    test_predict = model.predict(X_test)
+    mse_test = mean_squared_error(Y_test, test_predict)
+    print("test error:", mse_test)
 
 
 
 
-Predicted_Train = cross_val_predict(clf, X_train, Y_train, cv=5)
-MSE_Train = mean_squared_error(Y_train, Predicted_Train)
-print('MSE for training data is:')
-print(MSE_Train)
-
-
-# Predicted_Test = clf.predict(X_test)
-# MSE_Test = mean_squared_error(Y_test, Predicted_Test)
-# print('MSE for test data is:')
-# print(MSE_Test)
