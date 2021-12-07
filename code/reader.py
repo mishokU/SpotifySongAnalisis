@@ -7,42 +7,31 @@ import wordcloud
 from wordcloud import WordCloud
 import collections
 import matplotlib.dates as mdates
+import classifier
 from matplotlib import pyplot as plt
 
 from PyLyrics import *
-import billboard
 
 from main import years
 from columns import secondColumn
 
-start_analysis_year = 2014  # 1995
-end_analysis_year = 2015  # 2017
+start_analysis_year = 2016
+end_analysis_year = 2017
 year_step = 1
 
 artist_genres_info = pd.DataFrame()
 
 
 def readAllCsv():
-    # read your 1+ StreamingHistory files (depending on how extensive your streaming history is) into pandas dataframes
 
     songsYearData = []
     for year in range(start_analysis_year, end_analysis_year, year_step):
-        df = pd.read_csv('/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv',
+        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv',
                          error_bad_lines=False)
         songsYearData.append(df)
-
-    # merge streaming dataframes
     frame = pd.concat(songsYearData, axis=0, ignore_index=True)
-
-    ## Remove NaN
     frame = frame.dropna()
-
-    ## Convert categorical features into numeric
-    # frame['explicit'] = frame['explicit'].map({True: 1, False: 0}).astype(int)
-
-    ## New 'year' feature
     frame['year'] = [x.split('-')[0] for x in frame['album_release_date']]
-    # reduce_genres(frame)
     print(frame.columns)
     print(frame)
 
@@ -52,32 +41,11 @@ def readAllCsv():
     drawArtistPopularityByAlbumPopularity(frame)
     drawArtistPopularityBySongsCount(frame)
 
+def readModel():
+    df2 = classifier.merge()
+    classifier.train(df2)
+    drawImportantFeatures(df2)
 
-def fetch_data():
-    year = 1969
-    data = collections.defaultdict(list)
-    for _ in range(6):
-        chart_date = str(year)+"-07-15"
-        chart = billboard.ChartData('hot-100',date=chart_date)
-        track_count = 0
-        for i,track in zip(range(100),chart):
-            if track_count == 30: break
-            artist = re.sub(r' Featuring.*','',track.artist)
-            try:
-                a = PyLyrics.getLyrics(artist,track.title)
-            except ValueError as e:
-                continue
-            data[year].append((track.title,track.artist,a))
-            track_count +=1
-        year += 10
-    return data
-
-def generate_dataframe(data, key):
-    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
-    df_tmp = pd.DataFrame(data, index=years_local, columns=['key'])
-    # Converting the index as date
-    df_tmp.index = pd.to_datetime(df_tmp.index)
-    return df_tmp
 
 
 def mean_data_generation(df):
@@ -89,7 +57,7 @@ def mean_data_generation(df):
     instrumentalness_over_years = []
     track_number_over_years = []
     for year in years_local:
-        df = pd.read_csv('/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
+        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
         loudness_over_years.append(df['loudness'].mean())
         energy_over_years.append(df['energy'].mean())
         valence_over_years.append(df['valence'].mean())
@@ -117,61 +85,12 @@ def mean_data_generation(df):
         'Instrumentalness': df_instrumentalness,
         'Track number': df_track_numbers
     }
-
-
-def drawDominateGenresWords(df):
-    for year in years:
-        artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
-
-    x = (artist_genres_info.loc[:, '1995'])
-    coun = collections.Counter()
-    for elem in x:
-        v = (elem[1:-1].split(", "))
-        v = [year[1:-1] for year in v]
-        coun.update(v)
-    wc = WordCloud(width=500, height=500, background_color='white', min_font_size=10)
-    wc.generate_from_frequencies(coun)
-    plt.figure(figsize=(8, 8), facecolor=None)
-    plt.imshow(wc)
-    plt.axis("off")
-    plt.tight_layout(pad=0)
-    plt.show()
-
-
-def drawGenderTrends():
-    total_array = []
-    for year in range(1969, 2020, 10):
-        temp_array = []
-        for title, artist, lyrics in data[year]:
-            temp_array.append(artist_dict[artist])
-        total_array.append(temp_array)
-
-    total_array = np.array(total_array)
-    df = pd.DataFrame(total_array.T, columns=['1969', '1979', '1989', '1999', '2009', '2019'])
-    df_new = pd.melt(df)
-    df_new = df_new.rename(columns={"variable": "Year", "value": "Gender"})
-    sns.countplot(x="Year", hue="Gender", data=df_new)
-    plt.show()
-
-
-def drawMostFrequentlyGenres():
-    count = collections.Counter()
-
-    for year in years:
-        df = pd.read_csv('/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
-        artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
-
-    x = (artist_genres_info.loc[:, str(year)])
-    for elem in x:
-        v = ((elem[1:-1].split(", ")))
-        v = [year[1:-1] for year in v]
-        count.update(v)
-
-    df = pd.DataFrame(count.most_common(25), columns=['genre', 'count'])
-    ax = sns.barplot(x="genre", y="count", data=df)
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
-    plt.show()
-
+def generate_dataframe(data, key):
+    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
+    df_tmp = pd.DataFrame(data, index=years_local, columns=['key'])
+    # Converting the index as date
+    df_tmp.index = pd.to_datetime(df_tmp.index)
+    return df_tmp
 
 def drawPlots(df):
     warnings.filterwarnings(action='once')
@@ -207,6 +126,58 @@ def drawPlots(df):
     fig.tight_layout()
     plt.show()
 
+def drawMostFrequentlyGenres():
+    count = collections.Counter()
+
+    for year in years:
+        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
+        artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
+
+    x = (artist_genres_info.loc[:, str(year)])
+    for elem in x:
+        v = ((elem[1:-1].split(", ")))
+        v = [year[1:-1] for year in v]
+        count.update(v)
+
+    df = pd.DataFrame(count.most_common(25), columns=['genre', 'count'])
+    ax = sns.barplot(x="genre", y="count", data=df)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+    plt.show()
+
+def drawDominateGenresWords(df):
+    for year in years:
+        artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
+
+    x = (artist_genres_info.loc[:, '1995'])
+    coun = collections.Counter()
+    for elem in x:
+        v = (elem[1:-1].split(", "))
+        v = [year[1:-1] for year in v]
+        coun.update(v)
+    wc = WordCloud(width=500, height=500, background_color='white', min_font_size=10)
+    wc.generate_from_frequencies(coun)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wc)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
+def drawImportantFeatures(model):
+    importance = model.feature_importances_
+    dfi = pd.DataFrame(importance, index=df.columns, columns=["Importance"])
+    dfi = dfi.sort_values(['Importance'], ascending=False)
+    # showing those features which are at least significant.
+    df_plot = dfi[dfi.Importance > 0.01]
+    # Let's visualize the importance
+    sns.set()
+    plt.figure(figsize=(15, 10))
+    plt.barh(df_plot.index, df_plot['Importance'], align='center', alpha=0.5,
+             color=['black', 'red', 'green', 'blue', 'cyan'])
+    plt.xlabel("Importance")
+    plt.ylabel("Audio features")
+    plt.title("Importance of audio features")
+
+    plt.tight_layout()
+
 
 def drawArtistPopularityByAlbumPopularity(frame):
     sns.scatterplot(data=frame, x="artist_popularity", y="album_popularity", hue="popularity")
@@ -218,3 +189,5 @@ def drawArtistPopularityBySongsCount(frame):
     plt.ylabel('Songs Count')
     plt.xticks(rotation=45, ha='right')
     plt.show()
+
+
