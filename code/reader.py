@@ -15,8 +15,8 @@ from PyLyrics import *
 from main import years
 from columns import secondColumn
 
-start_analysis_year = 2016
-end_analysis_year = 2017
+start_analysis_year = 2013
+end_analysis_year = 2014
 year_step = 1
 
 artist_genres_info = pd.DataFrame()
@@ -26,7 +26,7 @@ def readAllCsv():
 
     songsYearData = []
     for year in range(start_analysis_year, end_analysis_year, year_step):
-        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv',
+        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv',
                          error_bad_lines=False)
         songsYearData.append(df)
     frame = pd.concat(songsYearData, axis=0, ignore_index=True)
@@ -37,9 +37,9 @@ def readAllCsv():
 
     drawPlots(frame)
     drawMostFrequentlyGenres()
-    drawDominateGenresWords(frame)
-    drawArtistPopularityByAlbumPopularity(frame)
-    drawArtistPopularityBySongsCount(frame)
+    #drawDominateGenresWords(frame)
+    #drawArtistPopularityByAlbumPopularity(frame)
+    #drawArtistPopularityBySongsCount(frame)
 
 def readModel():
     df2 = classifier.merge()
@@ -57,7 +57,7 @@ def mean_data_generation(df):
     instrumentalness_over_years = []
     track_number_over_years = []
     for year in years_local:
-        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
+        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv', error_bad_lines=False)
         loudness_over_years.append(df['loudness'].mean())
         energy_over_years.append(df['energy'].mean())
         valence_over_years.append(df['valence'].mean())
@@ -130,7 +130,7 @@ def drawMostFrequentlyGenres():
     count = collections.Counter()
 
     for year in years:
-        df = pd.read_csv('/Users/Ilya/PycharmProjects/SpotifySongAnalisis/data/' + str(year) + '.csv', error_bad_lines=False)
+        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv', error_bad_lines=False)
         artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
 
     x = (artist_genres_info.loc[:, str(year)])
@@ -163,7 +163,7 @@ def drawDominateGenresWords(df):
     plt.show()
 def drawImportantFeatures(model):
     importance = model.feature_importances_
-    dfi = pd.DataFrame(importance, index=df.columns, columns=["Importance"])
+    dfi = pd.DataFrame(importance, index=model.columns, columns=["Importance"])
     dfi = dfi.sort_values(['Importance'], ascending=False)
     # showing those features which are at least significant.
     df_plot = dfi[dfi.Importance > 0.01]
