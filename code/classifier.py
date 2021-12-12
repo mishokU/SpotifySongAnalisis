@@ -103,3 +103,4 @@ def train(df):
     test_predict = model.predict(X_test)
     mse_test = mean_squared_error(Y_test, test_predict)
     print("test error:", mse_test)
+    return model

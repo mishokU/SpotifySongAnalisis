@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import wordcloud
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 from wordcloud import WordCloud
 import collections
 import matplotlib.dates as mdates
@@ -42,9 +45,22 @@ def readAllCsv():
 
 
 def readModel():
-    df2 = classifier.merge()
-    classifier.train(df2)
-    drawImportantFeatures(df2)
+    df = classifier.merge()
+    Y = df['class'].values
+    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
+                  'artist_name', 'album_name', 'type', 'artist_genres', 'album_release_date', 'popularity',
+                  'class', 'index', 'reduced_genres'], axis=1)
+    X = df.values
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
+    model = RandomForestRegressor(n_estimators=200, max_features=17)
+    model.fit(X_train, Y_train)
+    train_predict = model.predict(X_train)
+    mse_train = mean_squared_error(Y_train, train_predict)
+    print("training error:", mse_train)
+    test_predict = model.predict(X_test)
+    mse_test = mean_squared_error(Y_test, test_predict)
+    print("test error:", mse_test)
+    drawImportantFeatures(df, model)
 
 
 def mean_data_generation(df):
@@ -167,9 +183,10 @@ def drawDominateGenresWords(df):
     plt.show()
 
 
-def drawImportantFeatures(model):
+def drawImportantFeatures(df, model):
     importance = model.feature_importances_
-    dfi = pd.DataFrame(importance, index=model.columns, columns=["Importance"])
+    df.drop_duplicates(inplace=True)
+    dfi = pd.DataFrame(importance, index=df.columns, columns=["Importance"])
     dfi = dfi.sort_values(['Importance'], ascending=False)
     # showing those features which are at least significant.
     df_plot = dfi[dfi.Importance > 0.01]
