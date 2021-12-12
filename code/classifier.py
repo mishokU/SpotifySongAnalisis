@@ -6,7 +6,6 @@ import numpy as np
 import scipy as sp
 from nltk.corpus import stopwords
 
-
 from scipy import stats
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score, train_test_split, cross_val_predict
@@ -19,6 +18,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import accuracy_score
 import re
 from sklearn.feature_extraction.text import CountVectorizer
+
+from constants import dataPath
 
 
 def bagwords(df):
@@ -51,6 +52,7 @@ def bagwords(df):
     result = pd.concat(dicdf.values(), axis=1)
     return result
 
+
 def names_to_words(names):
     words = re.sub("[^a-zA-Z0-9]", " ", names).lower().split()
     words = [i for i in words if i not in set(stopwords.words("english"))]
@@ -79,16 +81,16 @@ def generic_cleanup(df):
 
 def merge():
     warnings.filterwarnings('ignore')
-    df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/2014.csv', error_bad_lines=False)
+    df = pd.read_csv(dataPath + '2014.csv', error_bad_lines=False)
     df = generic_cleanup(df)
-    df1 = bagwords( df )
+    df1 = bagwords(df)
     df = df.merge(df1, on='song_id', how='outer')
     return df
 
 
 def train(df):
     Y = df['class'].values
-    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name',
+    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
                   'artist_name', 'album_name', 'type', 'artist_genres', 'album_release_date', 'popularity',
                   'class', 'index', 'reduced_genres'], axis=1)
     X = df.values

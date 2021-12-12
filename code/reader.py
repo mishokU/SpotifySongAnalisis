@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 from PyLyrics import *
 
+from constants import dataPath
 from main import years
 from columns import secondColumn
 
@@ -23,11 +24,9 @@ artist_genres_info = pd.DataFrame()
 
 
 def readAllCsv():
-
     songsYearData = []
     for year in range(start_analysis_year, end_analysis_year, year_step):
-        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv',
-                         error_bad_lines=False)
+        df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
         songsYearData.append(df)
     frame = pd.concat(songsYearData, axis=0, ignore_index=True)
     frame = frame.dropna()
@@ -37,15 +36,15 @@ def readAllCsv():
 
     drawPlots(frame)
     drawMostFrequentlyGenres()
-    #drawDominateGenresWords(frame)
-    #drawArtistPopularityByAlbumPopularity(frame)
-    #drawArtistPopularityBySongsCount(frame)
+    drawDominateGenresWords(frame)
+    drawArtistPopularityByAlbumPopularity(frame)
+    drawArtistPopularityBySongsCount(frame)
+
 
 def readModel():
     df2 = classifier.merge()
     classifier.train(df2)
     drawImportantFeatures(df2)
-
 
 
 def mean_data_generation(df):
@@ -57,7 +56,7 @@ def mean_data_generation(df):
     instrumentalness_over_years = []
     track_number_over_years = []
     for year in years_local:
-        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv', error_bad_lines=False)
+        df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
         loudness_over_years.append(df['loudness'].mean())
         energy_over_years.append(df['energy'].mean())
         valence_over_years.append(df['valence'].mean())
@@ -85,12 +84,15 @@ def mean_data_generation(df):
         'Instrumentalness': df_instrumentalness,
         'Track number': df_track_numbers
     }
+
+
 def generate_dataframe(data, key):
     years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
     df_tmp = pd.DataFrame(data, index=years_local, columns=['key'])
     # Converting the index as date
     df_tmp.index = pd.to_datetime(df_tmp.index)
     return df_tmp
+
 
 def drawPlots(df):
     warnings.filterwarnings(action='once')
@@ -126,11 +128,12 @@ def drawPlots(df):
     fig.tight_layout()
     plt.show()
 
+
 def drawMostFrequentlyGenres():
     count = collections.Counter()
 
     for year in years:
-        df = pd.read_csv('/Users/Ilya/Desktop/SpotifySongAnalisis-secondbranch/data/' + str(year) + '.csv', error_bad_lines=False)
+        df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
         artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
 
     x = (artist_genres_info.loc[:, str(year)])
@@ -143,6 +146,7 @@ def drawMostFrequentlyGenres():
     ax = sns.barplot(x="genre", y="count", data=df)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
     plt.show()
+
 
 def drawDominateGenresWords(df):
     for year in years:
@@ -161,6 +165,8 @@ def drawDominateGenresWords(df):
     plt.axis("off")
     plt.tight_layout(pad=0)
     plt.show()
+
+
 def drawImportantFeatures(model):
     importance = model.feature_importances_
     dfi = pd.DataFrame(importance, index=model.columns, columns=["Importance"])
@@ -189,5 +195,3 @@ def drawArtistPopularityBySongsCount(frame):
     plt.ylabel('Songs Count')
     plt.xticks(rotation=45, ha='right')
     plt.show()
-
-
