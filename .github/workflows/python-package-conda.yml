@@ -24,8 +24,6 @@ jobs:
         python3 -m site
         sudo ln -sf python3.8 /usr/bin/python
         sudo apt-get install python3-pip
-        python3 -m pip3 install --upgrade pip3 setuptools wheel
-        python3 -m pip3 install --upgrade coverage[toml] virtualenv tox tox-gh-actions
     - name: Install dependencies
       run: pip install -r utils/requirements.txt
     - name: Run code
