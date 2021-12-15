@@ -1,23 +1,13 @@
 import collections
+import re
 import warnings
 
 import pandas as pd
-import numpy as np
-import scipy as sp
 from nltk.corpus import stopwords
-
-from scipy import stats
-import matplotlib.pyplot as plt
-from sklearn.model_selection import cross_val_score, train_test_split, cross_val_predict
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
-from sklearn import linear_model
-from sklearn import svm
-import seaborn as sns
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import accuracy_score
-import re
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 
 from constants import dataPath
 

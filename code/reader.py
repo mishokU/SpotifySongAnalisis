@@ -1,26 +1,20 @@
+import collections
 import warnings
 
+import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import wordcloud
+from matplotlib import pyplot as plt
+from nltk.corpus import stopwords
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from wordcloud import WordCloud
-import collections
-import matplotlib.dates as mdates
+
 import classifier
-from matplotlib import pyplot as plt
-from nltk.corpus import stopwords
-
-from PyLyrics import *
-
 from constants import dataPath
 from main import years
-from columns import secondColumn
-from PIL import Image
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
 start_analysis_year = 2013
 end_analysis_year = 2014
