@@ -4,7 +4,7 @@ from reader import readModel, readAllCsv
 from main import extract_songs
 
 if __name__ == '__main__':
-    #readAllCsv()
+    readAllCsv()
     readModel()
 
     #extract_songs()

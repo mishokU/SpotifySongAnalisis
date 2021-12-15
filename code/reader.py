@@ -12,12 +12,15 @@ import collections
 import matplotlib.dates as mdates
 import classifier
 from matplotlib import pyplot as plt
+from nltk.corpus import stopwords
 
 from PyLyrics import *
 
 from constants import dataPath
 from main import years
 from columns import secondColumn
+from PIL import Image
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
 start_analysis_year = 2013
 end_analysis_year = 2014
@@ -200,6 +203,24 @@ def drawImportantFeatures(df, model):
     plt.title("Importance of audio features")
 
     plt.tight_layout()
+    wc = WordCloud(width=800, height=400, background_color='white', stopwords=stopwords)
+    weights = {}
+    idx = 0
+    arr = np.array(dfi)
+    keys = np.array(dfi.index)
+
+    idx = 0
+    for i in keys:
+        weights[i] = arr[idx][0]
+        idx += 1
+
+    wc.generate_from_frequencies(weights)
+    plt.figure(figsize=(20, 10))
+    plt.imshow(wc, interpolation='bilinear')
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+
+    plt.show()
 
 
 def drawArtistPopularityByAlbumPopularity(frame):
