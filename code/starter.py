@@ -5,6 +5,6 @@ from main import extract_songs
 
 if __name__ == '__main__':
     readAllCsv()
-    readModel()
+    #readModel()
 
     #extract_songs()

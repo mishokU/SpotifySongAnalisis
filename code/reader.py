@@ -50,7 +50,7 @@ def readAllCsv():
 def readModel():
     df = classifier.merge()
     Y = df['class'].values
-    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
+    df = df.drop(['song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
                   'artist_name', 'album_name', 'type', 'artist_genres', 'album_release_date', 'popularity',
                   'class', 'index', 'reduced_genres'], axis=1)
     X = df.values

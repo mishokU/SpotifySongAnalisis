@@ -15,6 +15,6 @@ secondColumn = ['song_id', 'uri',
                 'duration_ms', 'time_signature',
                 'acousticness', 'instrumentalness']
 
-trirdColumn = ['artist_id', 'artist_genres', 'artist_popularity']
+thirdColumn = ['artist_id', 'artist_genres', 'artist_popularity']
 
 fourthColumn = ['album_id', 'album_genres', 'album_popularity', 'album_release_date']
