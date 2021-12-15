@@ -1,26 +1,17 @@
-import spotipy
-import collections
-import re
-import warnings
-import pandas as pd
-from nltk.corpus import stopwords
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-from constants import dataPath
-import time
-import auth
-import collections
-import warnings
+apt-get install python3-pip
 
-import matplotlib.dates as mdates
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from matplotlib import pyplot as plt
-from nltk.corpus import stopwords
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-from wordcloud import WordCloud
+
+pip3 install spotipy
+pip3 install collections
+pip3 install pandas
+pip3 install seaborn
+pip3 install wordcloud
+
+
+apt-get install python3-nltk
+
+pip install -U scikit-learn
+
+apt-get install python3-matplotlib
+
+apt-get install python3-numpy
