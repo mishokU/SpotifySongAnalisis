@@ -18,6 +18,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
+    - name: Install python
+      run: |
+        python -VV
+        python -m site
+        python -m pip3 install --upgrade pip3 setuptools wheel
+        python -m pip3 install --upgrade coverage[toml] virtualenv tox tox-gh-actions
     - name: Install dependencies
       run: pip install -r utils/requirements.txt
     - name: Run code
