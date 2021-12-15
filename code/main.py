@@ -3,8 +3,8 @@ import auth
 from createFile import createFile
 
 years = ['1995', '1996', '1997', '1998', '1999', '2000', '2001',
-           '2002', '2003', '2004', '2005', '2006', '2007', '2008',
-           '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017']
+         '2002', '2003', '2004', '2005', '2006', '2007', '2008',
+         '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017']
 num_tracks_per_query = 10000
 
 # years = ['1995', '1996']
@@ -22,9 +22,9 @@ g_search_type = 'track'
 
 
 def extract_songs():
-
     # Query and request from API are different!
     # Number of track query need to make
+    start_time = time.time()
     for year in years:
 
         tracks = []
@@ -55,13 +55,14 @@ def extract_songs():
             getAlbums(album_ids[index: index + albums_step], album_data)
             time.sleep(time_sleep)
 
-        createFile(tracks, audios, artist_data,album_data, year)
+        createFile(tracks, audios, artist_data, album_data, year)
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 def searchRequest(year, search_type, results_limit, results_offset, tracksFile, song_ids, artist_ids, album_ids):
-
     try:
-        result = auth.getSpotify().search(q='year:' + year, type=search_type, limit=results_limit, offset=results_offset)
+        result = auth.getSpotify().search(q='year:' + year, type=search_type, limit=results_limit,
+                                          offset=results_offset)
 
         items = result['tracks']['items']
 
@@ -96,7 +97,6 @@ def searchRequest(year, search_type, results_limit, results_offset, tracksFile, 
 
 
 def getAudios(songIds, audioFile):
-
     track_ids = ','.join(songIds)
 
     audioFeatures = auth.getSpotify().audio_features(tracks=track_ids)
@@ -104,21 +104,20 @@ def getAudios(songIds, audioFile):
     try:
         for features in audioFeatures:
             columns = [features['id'], features['uri'],
-                 features['tempo'], features['type'],
-                 features['key'], features['loudness'],
-                 features['mode'], features['speechiness'],
-                 features['liveness'], features['valence'],
-                 features['danceability'], features['energy'],
-                 features['track_href'], features['analysis_url'],
-                 features['duration_ms'], features['time_signature'],
-                 features['acousticness'], features['instrumentalness']]
+                       features['tempo'], features['type'],
+                       features['key'], features['loudness'],
+                       features['mode'], features['speechiness'],
+                       features['liveness'], features['valence'],
+                       features['danceability'], features['energy'],
+                       features['track_href'], features['analysis_url'],
+                       features['duration_ms'], features['time_signature'],
+                       features['acousticness'], features['instrumentalness']]
             audioFile.append(columns)
     except:
         ValueError
 
 
 def getAlbums(album_ids, album_data):
-
     result = auth.getSpotify().albums(albums=album_ids)
 
     albums = result['albums']
@@ -137,7 +136,6 @@ def getAlbums(album_ids, album_data):
 
 
 def getArtists(artist_ids, artist_data):
-
     result = auth.getSpotify().artists(artist_ids)  # search query
     artists = result['artists']
 

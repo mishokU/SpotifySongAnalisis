@@ -8,7 +8,7 @@ def createFile(tracks, audios, artist_data, album_data, year):
 
     df2 = pd.DataFrame(audios, columns=columns.secondColumn)
 
-    df3 = pd.DataFrame(artist_data, columns=columns.trirdColumn)
+    df3 = pd.DataFrame(artist_data, columns=columns.thirdColumn)
 
     df4 = pd.DataFrame(album_data, columns=columns.fourthColumn)
 
@@ -16,7 +16,7 @@ def createFile(tracks, audios, artist_data, album_data, year):
 
     filename = 'data/' + year + '.csv'
 
-    df.to_csv(filename, sep=',')
+    df.to_csv(filename, sep=',', index=False)
 
     print('finish')
     print(year)

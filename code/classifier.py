@@ -1,6 +1,10 @@
+import collections
+import warnings
+
 import pandas as pd
 import numpy as np
 import scipy as sp
+from nltk.corpus import stopwords
 
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -10,193 +14,93 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn import linear_model
 from sklearn import svm
 import seaborn as sns
-from xgboost import XGBClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import accuracy_score
 import re
 from sklearn.feature_extraction.text import CountVectorizer
 
+from constants import dataPath
 
 
-def bagwords (df):
-       
-    
-    listname = ['artist_genres', 'artist_name', 'album_name', 'song_name']
-    
-  
-    dicname = {name: [] for name in listname}
-    dicname['song_id'] = []
-    
+def bagwords(df):
+    list_name = ['artist_genres', 'artist_name', 'album_name', 'song_name']
+    final_dict = {name: [] for name in list_name}
+    final_dict['song_id'] = []
     listid = []
-    
     dicdf = {}
-    vol = {}
+    val = {}
     print(df.shape)
- 
-        
-    for name in listname:
-        
+    for name in list_name:
         for idx in range(df[name].size):
-            
-            l = df[name][idx]
-          
-            r = names_to_words(l)
-            
-            dicname[name].append(r) 
-            
-      
-            
-        
-        vectorizer = CountVectorizer(analyzer='word',max_features=30)
-        feature = vectorizer.fit_transform(dicname[name]).toarray().tolist()
-        vol[name] = vectorizer.get_feature_names()
-        
-        
-        dicdf[name] = pd.DataFrame({name: feature}) 
-        
+            original_val = df[name][idx]
+            changed_val = names_to_words(original_val)
+            final_dict[name].append(changed_val)
+
+        vectorizer = CountVectorizer(analyzer='word', max_features=30)
+        feature = vectorizer.fit_transform(final_dict[name]).toarray().tolist()
+        val[name] = vectorizer.get_feature_names()
+        dicdf[name] = pd.DataFrame({name: feature})
         dicdf[name] = dicdf[name][name].apply(pd.Series)
-        ### dicdf[name] already lose column tag name, but change into 0 1 2 
-        
-        l = len(dicdf[name].columns)
-        
-        dicdf[name].columns = [(name + '_' +vol[name][x]) for x in range(l)]
-        
-        print('good')
-     
-   
-    
+        ### dicdf[name] already lose column tag name, but change into 0 1 2
+        length = len(dicdf[name].columns)
+        dicdf[name].columns = [(name + '_' + val[name][x]) for x in range(length)]
+        # print('good')
     for idx in range(df['song_id'].size):
         sid = df['song_id'][idx]
         listid.append(sid)
-       
-            
-        dicdf['song_id'] = pd.DataFrame({'song_id':listid}) 
-
-        
-            
-            
-        
-    result = pd.concat(dicdf.values(), axis =1)
-    
+        dicdf['song_id'] = pd.DataFrame({'song_id': listid})
+    result = pd.concat(dicdf.values(), axis=1)
     return result
-    
 
 
 def names_to_words(names):
-    words = re.sub("[^a-zA-Z0-9]"," ",names).lower().split()
-    
+    words = re.sub("[^a-zA-Z0-9]", " ", names).lower().split()
     words = [i for i in words if i not in set(stopwords.words("english"))]
-    ## Need join as string for countvectorizer!
-    return (" ".join(words))
+    return (" ".join(words))  # joined for use with countvectorizer
+
 
 def reduce_genres(gen):
-    genre = re.sub("[^a-zA-Z0-9]"," ",gen).lower().split()
+    genre = re.sub("[^a-zA-Z0-9]", " ", gen).lower().split()
     genre = [i for i in genre if i not in set(stopwords.words("english"))]
-    mode1 = str(stats.mode(genre)).split('[')[1].split(']')[0]
-    return mode1
-    
-
-print('Start!')
-
-## general dataframe transform
-df = pd.read_csv('//Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/1995.csv', sep='\t')
-
-df = df.dropna()
-
-df = df.drop(['album_genres'],axis =1 )
+    most_frequent = collections.Counter(genre).most_common(1)[0][0]
+    most_frequent = "'" + most_frequent + "'"
+    return most_frequent
 
 
-df['explicit'] = df['explicit'].map( {True: 1, False: 0} ).astype(int) 
-
-z = df['popularity'].quantile(0.8)
-df['class'] = df['popularity'].apply(lambda x: 1 if x >= z else 0)
-
-df = df[(df.astype(str)['artist_genres'] != '[]')].reset_index()
-
-df['reduced_genres'] = df['artist_genres'].apply(lambda x: reduce_genres(x))
-
-df['year'] = [x.split('-')[0] for x in df['album_release_date']]
-
-df.to_csv('bigdiwithyear.csv', sep='\t')
+def generic_cleanup(df):
+    df = df.dropna()  # drops null values
+    df = df.drop(['album_genres'], axis=1)  # column not needed
+    df['explicit'] = df['explicit'].map({True: 1, False: 0}).astype(int)
+    threshold = df['popularity'].quantile(0.8)
+    df['class'] = df['popularity'].apply(lambda x: 1 if x >= threshold else 0)  # takes 20% of all tracks
+    df = df[(df.astype(str)['artist_genres'] != '[]')].reset_index()
+    df['reduced_genres'] = df['artist_genres'].apply(lambda x: reduce_genres(x))
+    df['year'] = [x.split('-')[0] for x in df['album_release_date']]
+    return df
 
 
-### bag of words: text items vectorization
-
-df1 = bagwords( df )
-
-df = df.merge(df1, on='song_id', how='outer')
-
-df.shape
-
-
-df = df.drop(['Unnamed: 0', 'song_id', 'artist_id','album_id','song_name',
-            'artist_name','album_name','uri', 'type', 'track_href',
-            'analysis_url','artist_genres','album_release_date','popularity',
-            'class','index','reduced_genres'],axis=1)   
-
-df.to_csv('bigdichorddiagram.csv', sep='\t')
-
-df[(df['popularity'] >= df['popularity'].quantile(0.8))]['loudness'].mean()#value_counts(dropna=False)
+def merge():
+    warnings.filterwarnings('ignore')
+    df = pd.read_csv(dataPath + '2014.csv', error_bad_lines=False)
+    df = generic_cleanup(df)
+    df1 = bagwords(df)
+    df = df.merge(df1, on='song_id', how='outer')
+    return df
 
 
-
-#training
-Y = df['class'].values
-
-X = df.values     
-
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
-
-
-#clf = XGBClassifier()
-#clf = RandomForestRegressor(n_estimators=200,max_features=18)
-
-clf  =  XGBClassifier(
-        eval_metric = 'accuracy',
-        learning_rate = 0.1,
-        n_estimators = 100,
-        max_depth = 3,
-        subsample = 0.9,
-        colsample_bytree = 0.9,
-        silent = False
-        )
-
-#clf = RandomForestClassifier(n_estimators=100,max_features=17)  
-
-#clf = svm.SVC()        
-        
-clf.fit(X_train,Y_train)
-
-print('good')
-
-importance = clf.feature_importances_
-
-dfi = pd.DataFrame(importance, index=df.columns, columns=["Importance"])
-dfi = dfi.sort_values(['Importance'],ascending=False)
-print(dfi)
-dfi.plot(kind='bar',color='Purple')
-
-
-
-Ascores_Train = cross_val_score(clf, X_train, Y_train, cv=5)
-Ascores_Test = clf.score(X_test,Y_test)
-
-
-print('lala')
-print(Ascores_Train.mean()) 
-print(Ascores_Train.std()) 
-print(Ascores_Test) 
-
-
-
-
-Predicted_Train = cross_val_predict(clf, X_train, Y_train, cv=5)
-MSE_Train = mean_squared_error(Y_train, Predicted_Train)
-print('MSE for training data is:')
-print(MSE_Train)
-
-
-# Predicted_Test = clf.predict(X_test)
-# MSE_Test = mean_squared_error(Y_test, Predicted_Test)
-# print('MSE for test data is:')
-# print(MSE_Test)
+def train(df):
+    Y = df['class'].values
+    df = df.drop(['Unnamed: 0', 'song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
+                  'artist_name', 'album_name', 'type', 'artist_genres', 'album_release_date', 'popularity',
+                  'class', 'index', 'reduced_genres'], axis=1)
+    X = df.values
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
+    model = RandomForestRegressor(n_estimators=200, max_features=17)
+    model.fit(X_train, Y_train)
+    train_predict = model.predict(X_train)
+    mse_train = mean_squared_error(Y_train, train_predict)
+    print("training error:", mse_train)
+    test_predict = model.predict(X_test)
+    mse_test = mean_squared_error(Y_test, test_predict)
+    print("test error:", mse_test)
+    return model
