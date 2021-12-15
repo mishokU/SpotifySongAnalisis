@@ -22,7 +22,7 @@ jobs:
       run: |
         python3 -VV
         python3 -m site
-        ln -sf python3.7 /usr/bin/python
+        sudo ln -sf python3.8 /usr/bin/python
         python3 -m pip3 install --upgrade pip3 setuptools wheel
         python3 -m pip3 install --upgrade coverage[toml] virtualenv tox tox-gh-actions
     - name: Install dependencies
