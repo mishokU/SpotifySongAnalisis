@@ -1,4 +1,5 @@
 import collections
+import time
 import warnings
 
 import matplotlib.dates as mdates
@@ -20,6 +21,8 @@ start_analysis_year = 2013
 end_analysis_year = 2014
 year_step = 1
 
+show = False
+
 artist_genres_info = pd.DataFrame()
 
 
@@ -34,14 +37,17 @@ def readAllCsv():
     print(frame.columns)
     print(frame)
 
+    start_time = time.time()
     drawPlots(frame)
     drawMostFrequentlyGenres()
     drawDominateGenresWords(frame)
     drawArtistPopularityByAlbumPopularity(frame)
     drawArtistPopularityBySongsCount(frame)
+    print("--- %s seconds draw task ---" % (time.time() - start_time))
 
 
 def readModel():
+    start_time = time.time()
     df = classifier.merge()
     Y = df['class'].values
     df = df.drop(['song_id', 'artist_id', 'album_id', 'song_name', 'uri', 'track_href', 'analysis_url',
@@ -58,6 +64,7 @@ def readModel():
     mse_test = mean_squared_error(Y_test, test_predict)
     print("test error:", mse_test)
     drawImportantFeatures(df, model)
+    print("--- %s seconds classifier task ---" % (time.time() - start_time))
 
 
 def mean_data_generation(df):
@@ -139,7 +146,8 @@ def drawPlots(df):
             break
 
     fig.tight_layout()
-    plt.show()
+    if show:
+        plt.show()
 
 
 def drawMostFrequentlyGenres():
@@ -158,7 +166,8 @@ def drawMostFrequentlyGenres():
     df = pd.DataFrame(count.most_common(25), columns=['genre', 'count'])
     ax = sns.barplot(x="genre", y="count", data=df)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
-    plt.show()
+    if show:
+        plt.show()
 
 
 def drawDominateGenresWords(df):
@@ -177,7 +186,8 @@ def drawDominateGenresWords(df):
     plt.imshow(wc)
     plt.axis("off")
     plt.tight_layout(pad=0)
-    plt.show()
+    if show:
+        plt.show()
 
 
 def drawImportantFeatures(df, model):
@@ -214,7 +224,8 @@ def drawImportantFeatures(df, model):
     plt.axis("off")
     plt.tight_layout(pad=0)
 
-    plt.show()
+    if show:
+        plt.show()
 
 
 def drawArtistPopularityByAlbumPopularity(frame):
@@ -226,4 +237,5 @@ def drawArtistPopularityBySongsCount(frame):
     sns.countplot(x="artist_popularity", data=frame)
     plt.ylabel('Songs Count')
     plt.xticks(rotation=45, ha='right')
-    plt.show()
+    if show:
+        plt.show()
