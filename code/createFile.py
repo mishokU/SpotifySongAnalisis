@@ -16,7 +16,7 @@ def createFile(tracks, audios, artist_data, album_data, year):
 
     filename = 'data/' + year + '.csv'
 
-    df.to_csv(filename, sep=',')
+    df.to_csv(filename, sep=',', index=False)
 
     print('finish')
     print(year)
