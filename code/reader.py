@@ -21,7 +21,7 @@ start_analysis_year = 2013
 end_analysis_year = 2014
 year_step = 1
 
-show = False
+show = True
 
 artist_genres_info = pd.DataFrame()
 

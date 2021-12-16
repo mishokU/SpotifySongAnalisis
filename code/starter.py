@@ -1,5 +1,3 @@
-
-# Press the green button in the gutter to run the script.
 import os
 
 from reader import readModel, readAllCsv

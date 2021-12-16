@@ -22,4 +22,4 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
     - name: Run code
-      run: python3 code/main.py
+      run: python3 code/starter.py
