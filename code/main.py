@@ -2,14 +2,6 @@ import time
 import auth
 from createFile import createFile
 
-years = ['1995', '1996', '1997', '1998', '1999', '2000', '2001',
-         '2002', '2003', '2004', '2005', '2006', '2007', '2008',
-         '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017']
-num_tracks_per_query = 10000
-
-# years = ['1995', '1996']
-#
-# num_tracks_per_query = 100
 
 tracks_limit = 50
 loop_step = 50
@@ -21,11 +13,11 @@ start_value = 0
 g_search_type = 'track'
 
 
-def extract_songs():
+def extract_songs(startYear, endYear, tracks_per_year):
     # Query and request from API are different!
     # Number of track query need to make
     start_time = time.time()
-    for year in years:
+    for year in range(startYear, endYear):
 
         tracks = []
         song_ids = []
@@ -36,8 +28,8 @@ def extract_songs():
         artist_data = []
         album_data = []
 
-        for index in range(start_value, num_tracks_per_query, loop_step):
-            searchRequest(year, g_search_type, tracks_limit, index, tracks, song_ids, artist_ids, album_ids)
+        for index in range(start_value, int(tracks_per_year), loop_step):
+            searchRequest(str(year), g_search_type, tracks_limit, index, tracks, song_ids, artist_ids, album_ids)
             print(('\n>> this is No ' + str(index) + ' search End '))
             # Limit API requests to at most 3ish calls / second
             time.sleep(time_sleep)
@@ -55,7 +47,7 @@ def extract_songs():
             getAlbums(album_ids[index: index + albums_step], album_data)
             time.sleep(time_sleep)
 
-        createFile(tracks, audios, artist_data, album_data, year)
+        createFile(tracks, audios, artist_data, album_data, str(year))
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
@@ -146,10 +138,3 @@ def getArtists(artist_ids, artist_data):
 
     except:
         ValueError
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    extract_songs()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

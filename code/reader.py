@@ -15,7 +15,6 @@ from wordcloud import WordCloud
 
 import classifier
 from constants import dataPath
-from main import years
 
 start_analysis_year = 2013
 end_analysis_year = 2014
@@ -26,7 +25,7 @@ show = True
 artist_genres_info = pd.DataFrame()
 
 
-def readAllCsv():
+def readAllCsv(startYear, endYear):
     songsYearData = []
     for year in range(start_analysis_year, end_analysis_year, year_step):
         df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
@@ -38,9 +37,9 @@ def readAllCsv():
     print(frame)
 
     start_time = time.time()
-    drawPlots(frame)
-    drawMostFrequentlyGenres()
-    drawDominateGenresWords(frame)
+    drawPlots(frame, startYear, endYear)
+    drawMostFrequentlyGenres(startYear, endYear)
+    drawDominateGenresWords(frame, startYear, endYear)
     drawArtistPopularityByAlbumPopularity(frame)
     drawArtistPopularityBySongsCount(frame)
     print("--- %s seconds draw task ---" % (time.time() - start_time))
@@ -67,15 +66,14 @@ def readModel():
     print("--- %s seconds classifier task ---" % (time.time() - start_time))
 
 
-def mean_data_generation(df):
-    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
+def mean_data_generation(df, start, end):
     loudness_over_years = []
     energy_over_years = []
     valence_over_years = []
     acoustics_over_years = []
     instrumentalness_over_years = []
     track_number_over_years = []
-    for year in years_local:
+    for year in range(start, end):
         df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
         loudness_over_years.append(df['loudness'].mean())
         energy_over_years.append(df['energy'].mean())
@@ -85,17 +83,17 @@ def mean_data_generation(df):
         track_number_over_years.append(df['track_number'].mean())
 
     # Energy data frame
-    df_energy = generate_dataframe(energy_over_years, 'energy')
+    df_energy = generate_dataframe(energy_over_years, 'energy', start, end)
     # Loudness data frame
-    df_loudness = generate_dataframe(loudness_over_years, 'loudness')
+    df_loudness = generate_dataframe(loudness_over_years, 'loudness', start, end)
     # Valence data frame
-    df_valence = generate_dataframe(valence_over_years, 'valence')
+    df_valence = generate_dataframe(valence_over_years, 'valence', start, end)
     # Acousticness data frame
-    df_acousticness = generate_dataframe(acoustics_over_years, 'acousticness')
+    df_acousticness = generate_dataframe(acoustics_over_years, 'acousticness', start, end)
     # Instrumentalness data frame
-    df_instrumentalness = generate_dataframe(instrumentalness_over_years, 'instrumentalness')
+    df_instrumentalness = generate_dataframe(instrumentalness_over_years, 'instrumentalness', start, end)
     # Ttrack_numbers data frame
-    df_track_numbers = generate_dataframe(track_number_over_years, 'track_number')
+    df_track_numbers = generate_dataframe(track_number_over_years, 'track_number', start, end)
     return {
         'Energy': df_energy,
         'Loudness': df_loudness,
@@ -106,17 +104,18 @@ def mean_data_generation(df):
     }
 
 
-def generate_dataframe(data, key):
-    years_local = ['1995', '2000', '2005', '2010', '2015', '2017']
-    df_tmp = pd.DataFrame(data, index=years_local, columns=['key'])
+def generate_dataframe(data, key, start, end):
+    values = list(range(start, end, 1))
+    print(values)
+    df_tmp = pd.DataFrame(data, index=[str(int) for int in values], columns=['key'])
     # Converting the index as date
     df_tmp.index = pd.to_datetime(df_tmp.index)
     return df_tmp
 
 
-def drawPlots(df):
+def drawPlots(df, start, end):
     warnings.filterwarnings(action='once')
-    mean_map = mean_data_generation(df)
+    mean_map = mean_data_generation(df, start, end)
     # Create the plot space upon which to plot the data
     fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(10, 7))
     color_map = {
@@ -130,6 +129,8 @@ def drawPlots(df):
 
     r = 0
     c = 0
+    print(mean_map)
+    print(mean_map.keys())
     for key in mean_map.keys():
         sns.set()
         data_frame = mean_map[key]
@@ -150,16 +151,16 @@ def drawPlots(df):
         plt.show()
 
 
-def drawMostFrequentlyGenres():
+def drawMostFrequentlyGenres(start, end):
     count = collections.Counter()
 
-    for year in years:
+    for year in range(start, end):
         df = pd.read_csv(dataPath + str(year) + '.csv', on_bad_lines='skip')
         artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
 
     x = (artist_genres_info.loc[:, str(year)])
     for elem in x:
-        v = ((elem[1:-1].split(", ")))
+        v = (elem[1:-1].split(", "))
         v = [year[1:-1] for year in v]
         count.update(v)
 
@@ -170,18 +171,18 @@ def drawMostFrequentlyGenres():
         plt.show()
 
 
-def drawDominateGenresWords(df):
-    for year in years:
+def drawDominateGenresWords(df, start, end):
+    for year in range(start, end):
         artist_genres_info[str(year)] = (df.loc[:, 'artist_genres'])
 
-    x = (artist_genres_info.loc[:, '1995'])
-    coun = collections.Counter()
+    x = (artist_genres_info.loc[:, str(start)])
+    counter = collections.Counter()
     for elem in x:
         v = (elem[1:-1].split(", "))
         v = [year[1:-1] for year in v]
-        coun.update(v)
+        counter.update(v)
     wc = WordCloud(width=500, height=500, background_color='white', min_font_size=10)
-    wc.generate_from_frequencies(coun)
+    wc.generate_from_frequencies(counter)
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wc)
     plt.axis("off")

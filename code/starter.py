@@ -1,10 +1,7 @@
-import os
-
-from reader import readModel, readAllCsv
-from main import extract_songs
+from constants import years, num_tracks_per_query
+from mainWindow import SongAnalysisUi
 
 if __name__ == '__main__':
-    if not os.path.exists('../data'):
-        extract_songs()
-    readAllCsv()
-    readModel()
+
+    window = SongAnalysisUi(years = years, tracks_per_year= num_tracks_per_query)
+    window.createMainWindow()

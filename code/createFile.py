@@ -13,8 +13,8 @@ def createFile(tracks, audios, artist_data, album_data, year):
     df4 = pd.DataFrame(album_data, columns=columns.fourthColumn)
 
     df = df1.merge(df2, on='song_id', how='outer').merge(df3, on='artist_id', how='outer').merge(df4, on='album_id', how='outer')
-
-    filename = 'data/' + year + '.csv'
+    print(df)
+    filename = '../data/' + year + '.csv'
 
     df.to_csv(filename, sep=',', index=False)
 
