@@ -33,5 +33,5 @@
 3. Также стоит заменить путь к файлам dataPath = '/Users/m.usov/PycharmProjects/SpotifySongAnalisis/data/' на ваш
 4. Для запуска приложения требуется выполнить следующую комманду:
   ```bash
-    python3 program.py
+    python3 code/program.py
   ```
